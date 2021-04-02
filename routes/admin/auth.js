@@ -1,35 +1,71 @@
 const express = require('express');
+const {
+    check,
+    validationResult
+} = require('express-validator');
 const usersrepo = require('../../repositories/users');
 const signuptemplate = require('../../veiws/admins/auth/signup');
 signintemplate = require('../../veiws/admins/auth/signin');
 const router = express.Router();
 
 router.get('/signup', (req, res) => {
-    res.send(signuptemplate({req}));
+    res.send(signuptemplate({
+        req
+    }));
 });
 
-router.post('/signup', async (req, res) => {
-    const {
-        email,
-        password,
-        passwordConfirmation
-    } = req.body;
-    const exuser = await usersrepo.getoneby({
-        email
+router.post('/signup', [
+        check('email')
+        .trim()
+        .normalizeEmail()
+        .isEmail()
+        .withMessage('email must be valid')
+        .custom(async email => {
+            const exuser = await usersrepo.getoneby({
+                email
+            });
+            if (exuser) {
+                throw new Error('email used');
+            }
+        }),
+        check('password')
+        .trim()
+        .isLength({
+            min: 4,
+            max: 20
+        })
+        .withMessage('must be between 4 and 20'),
+        check('passwordConfirmation')
+        .trim()
+        .isLength({
+            min: 4,
+            max: 20
+        })
+        .withMessage('must be between 4 and 20')
+        .custom((passwordConfirmation, {
+            req
+        }) => {
+            if (passwordConfirmation !== req.body.password) {
+                throw new Error('password must match');
+            }
+        }),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        console.log(errors);
+        const {
+            email,
+            password,
+            passwordConfirmation
+        } = req.body;
+
+        const user = await usersrepo.create({
+            email,
+            password
+        });
+        req.session.userid = user.id;
+        res.send('account created!!!')
     });
-    if (exuser) {
-        return res.send('email used');
-    }
-    if (password !== passwordConfirmation) {
-        return res.send('password not matching');
-    }
-    const user = await usersrepo.create({
-        email,
-        password
-    });
-    req.session.userid = user.id;
-    res.send('account created!!!')
-});
 
 router.get('/signout', (req, res) => {
     req.session = null;
