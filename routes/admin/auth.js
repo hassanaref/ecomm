@@ -23,18 +23,12 @@ router.post(
   [requireEmail, requirePassword, requirePasswordConfirmation],
   handleErrors(signupTemplate),
   async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.send(signupTemplate({ req, errors }));
-    }
-
-    const { email, password} = req.body;
+    const { email, password } = req.body;
     const user = await usersRepo.create({ email, password });
 
     req.session.userId = user.id;
 
-    res.send('Account created!!!');
+    res.redirect('/admin/products');
   }
 );
 
@@ -58,7 +52,7 @@ router.post(
 
     req.session.userId = user.id;
 
-    res.send('You are signed in!!!');
+    res.redirect('/admin/products');
   }
 );
 
