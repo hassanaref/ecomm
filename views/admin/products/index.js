@@ -1,4 +1,4 @@
-const layout = require('../layout');
+const layout = require('../layout')
 
 module.exports = ({ products }) => {
   const renderedProducts = products
@@ -15,12 +15,14 @@ module.exports = ({ products }) => {
           </a>
         </td>
         <td>
+        <form method="POST" action="/admin/products/${product.id}/delete">
           <button class="button is-danger">Delete</button>
-        </td>
+        </form> 
+          </td>
       </tr>
-    `;
+    `
     })
-    .join('');
+    .join('')
 
   return layout({
     content: `
@@ -42,5 +44,5 @@ module.exports = ({ products }) => {
         </tbody>
       </table>
     `
-  });
-};
+  })
+}
